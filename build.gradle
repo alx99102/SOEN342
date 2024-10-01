@@ -1,0 +1,30 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(23)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['--enable-preview', '--release', '23']
+}
+
+tasks.register('run', Exec) {
+    group = 'application'
+    description = 'Compiles and runs the code with preview features enabled.'
+    workingDir '.'
+
+    commandLine 'javac', '--enable-preview', '--release', '23', 'src/main/java/Main.java'
+    doLast {
+        exec {
+            commandLine 'java', '--enable-preview', '-cp', 'src/main/java', 'Main'
+        }
+    }
+}
