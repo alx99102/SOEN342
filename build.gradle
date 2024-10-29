@@ -1,30 +1,31 @@
 plugins {
     id 'java'
+    id 'application'
 }
+
+sourceCompatibility = '23'
+targetCompatibility = '23'
 
 repositories {
     mavenCentral()
 }
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(23)
-    }
+dependencies {
+    // Add your dependencies here
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs += ['--enable-preview', '--release', '23']
+compileJava {
+    options.release = 23
+    options.compilerArgs += [
+        '--enable-preview',
+        '-Xlint:preview'
+    ]
 }
 
-tasks.register('run', Exec) {
-    group = 'application'
-    description = 'Compiles and runs the code with preview features enabled.'
-    workingDir '.'
+application {
+    mainClass = 'Main'
+}
 
-    commandLine 'javac', '--enable-preview', '--release', '23', 'src/main/java/Main.java'
-    doLast {
-        exec {
-            commandLine 'java', '--enable-preview', '-cp', 'src/main/java', 'Main'
-        }
-    }
+run {
+    jvmArgs += '--enable-preview'
 }
