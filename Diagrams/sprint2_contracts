@@ -1,0 +1,123 @@
+### Contract CO1: addOffering
+
+Operation: addOffering(offeringDetails: OfferingDetails)
+
+Cross References: Use Case: Process Offerings
+
+Preconditions:
+The Administrator is logged in and has the rights to perform this action
+
+---
+
+Postconditions:
+
+1. Instance Creation:
+
+   An Offering instance 'o' was created.
+
+2. Attribute Modification:
+
+   'o's attributes were set based on 'offeringDetails':
+   - o.location = offeringDetails.location
+   - o.schedule = offeringDetails.schedule
+   - o.lessonType = offeringDetails.lessonType
+   - o.mode = offeringDetails.mode (private or group)
+   - o.status = 'Unassigned'
+
+3. Associations Formed:
+
+   'o' was added to the system's list of offerings:
+   - System.offerings now includes 'o'
+
+4. Business Rules Enforced:
+
+   The offering is unique:
+   - No existing offering conflicts with 'o' in terms of location and time slot
+
+---
+
+### Contract CO2: getAvailableOfferings
+
+Operation: getAvailableOfferings() : List<Offering>
+
+Cross References: Use Case: Process Offerings
+
+Preconditions:
+The Instructor is logged in and has their specialization and availability registered
+
+---
+
+Postconditions:
+
+- No new instances created or deleted.
+- No attributes modified.
+- No associations changed.
+- System state stays the same.
+- Returns:
+  - A list 'availableOfferings' where each Offering 'o' satisfies:
+    - o.lessonType matches Instructor.specialization
+    - o.location.city is in Instructor.availabilityCities
+    - o.status == 'Unassigned'
+
+---
+
+### Contract CO3: assignOfferingToInstructor
+
+Operation: assignOfferingToInstructor(offeringID: String)
+
+Cross References: Use Case: Process Offerings
+
+Preconditions:
+- The Instructor is logged in.
+- Offering 'o' with o.id == offeringID exists in System.offerings.
+- 'o' meets the following:
+  - o.status == 'Unassigned'
+  - o.lessonType matches Instructor.specialization
+  - o.location.city is in Instructor.availabilityCities
+- The Instructor isn't already assigned to another offering at the same date and time.
+
+---
+
+Postconditions:
+
+1. Attribute Modification:
+
+   - o.instructor is set to the Instructor
+   - o.status is updated to 'Assigned'
+
+2. Associations Formed:
+
+   - 'o' is associated with the Instructor
+     - Instructor.assignedOfferings now includes 'o'
+
+3. Instructor's Schedule Updated:
+
+   - The Instructor's schedule includes 'o's time slot
+
+4. System Offerings Updated:
+
+   - System.offerings reflects 'o's new status
+
+---
+
+### Contract CO4: getPublicOfferings
+
+Operation: getPublicOfferings() : List<Offering>
+
+Cross References: Use Case: Process Offerings
+
+Preconditions:
+None (anyone can perform this operation)
+
+---
+
+Postconditions:
+
+- No new instances created or deleted.
+- No attributes modified.
+- No associations changed.
+- System state stays the same.
+- Returns:
+  - A list 'publicOfferings' where each Offering 'o' satisfies:
+    - o.status == 'Assigned'
+    - o.isBooked == false or shows current booking status
