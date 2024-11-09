@@ -1,12 +1,20 @@
 package user;
 
 import java.util.UUID;
-import java.util.Scanner;
 
 public abstract class User {
-    public UUID id;
-    public String name;
-    public Scanner s;
+    protected UUID id;
+    protected String name;
 
     public abstract void run();
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public abstract String getRole();
 }

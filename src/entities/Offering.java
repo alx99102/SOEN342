@@ -25,6 +25,18 @@ public class Offering {
         this.availToPublic = true;
     }
 
+    public Offering(String id, String location, String lessonType, boolean isPrivate, String startTime, String endTime, String date, String status, boolean availToPublic) {
+        this.id = UUID.fromString(id);
+        this.location = location;
+        this.lessonType = lessonType;
+        this.isPrivate = isPrivate;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.date = date;
+        this.status = status;
+        this.availToPublic = availToPublic;
+    }
+
     // Getters
     public UUID getId() {
         return this.id;

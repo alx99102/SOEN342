@@ -9,10 +9,14 @@ public class Public extends User {
 
     }
 
+    public String getRole() {
+        return "Public";
+    }
+
     public Public(UUID id, String name, Scanner s) {
         this.id = id;
         this.name = name;
-        this.s = s;
+        //this.s = s;
     }
 
 }
