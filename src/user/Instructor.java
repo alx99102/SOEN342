@@ -3,13 +3,17 @@ package user;
 import java.util.Scanner;
 import java.util.UUID;
 import java.sql.SQLException;
-import java.util.List;
+
+import entities.Availability;
 import entities.Offering;
+import system.InstructorAvailabilityDAO;
 import system.OfferingDAO;
 
 public class Instructor extends User {
     private String phoneNumber;
     private String specialization;
+
+    private String[] cities;
 
     public Instructor(UUID id, String name) {
         this.id = id;
@@ -51,12 +55,10 @@ public class Instructor extends User {
 
     private void viewAvailableOfferings() {
         try {
-            List<Offering> offerings = OfferingDAO.getAllOfferings();
+            Offering[] offerings = OfferingDAO.getOfferingsForInstructor(this.cities);
             System.out.println("\nAvailable Offerings:");
             for (Offering offering : offerings) {
-                if (!offering.getStatus().equals("Taken")) {
-                    System.out.println(offering);
-                }
+                System.out.println(offering);
             }
         } catch (SQLException e) {
             System.err.println("Failed to retrieve offerings: " + e.getMessage());
@@ -69,9 +71,23 @@ public class Instructor extends User {
         try {
             UUID id = UUID.fromString(offeringId);
             Offering offering = OfferingDAO.getOfferingById(id);
+            Availability[] availabilities = InstructorAvailabilityDAO.getForInstructor(this.id);
+
             if (offering != null && !offering.getStatus().equals("Taken")) {
+                // Constraint: “The city associated with an offering must be one the city’s that the instructor has
+                // indicated in their availabilities.”
+                boolean isAvailable = false;
+                for (Availability availability : availabilities) {
+                    if (availability.getCity().equals(offering.getLocation())) {
+                        isAvailable = true;
+                        break;
+                    }
+                }
+                if (!isAvailable) {
+                    System.out.println("Instructor not available in this city.");
+                    return;
+                }
                 offering.setStatus("Taken");
-                offering.setAvailToPublic(true);
                 OfferingDAO.updateOffering(offering);
                 System.out.println("Offering selected.");
             } else {
@@ -98,5 +114,13 @@ public class Instructor extends User {
 
     public void setSpecialization(String specialization) {
         this.specialization = specialization;
+    }
+
+    public void setCities(String[] cities) {
+        this.cities = cities;
+    }
+
+    public String[] getCities() {
+        return cities;
     }
 }

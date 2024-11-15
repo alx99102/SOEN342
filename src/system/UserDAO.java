@@ -1,8 +1,10 @@
 package system;
 
 import java.sql.*;
+import java.util.List;
 import java.util.UUID;
 import user.*;
+import java.util.ArrayList;
 
 public class UserDAO {
 
@@ -37,15 +39,16 @@ public class UserDAO {
         if (rs.next()) {
             String role = rs.getString("role");
             if (role.equals("Administrator")) {
-                return new Administrator(UUID.fromString(rs.getString("id")), rs.getString("name"));
+                Administrator admin = Administrator.getInstance();
+                admin.setId(id);
+                return admin;
             } else if (role.equals("Instructor")) {
                 Instructor instructor = new Instructor(UUID.fromString(rs.getString("id")), rs.getString("name"));
                 instructor.setPhoneNumber(rs.getString("phoneNumber"));
                 instructor.setSpecialization(rs.getString("specialization"));
                 return instructor;
-            } else {
-                // Handle other user types if needed
-                return null;
+            } else if (role.equals("Client")) {
+                return new Client(UUID.fromString(rs.getString("id")), rs.getString("name"), rs.getInt("age"), rs.getString("guardianName"));
             }
         }
 
@@ -53,5 +56,58 @@ public class UserDAO {
         pstmt.close();
 
         return null; // User not found
+    }
+
+    public static List<User> getAllUsers() throws SQLException {
+        Connection conn = DatabaseHelper.getConnection();
+        String sql = "SELECT * FROM users";
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+
+        List<User> users = new ArrayList<>();
+
+        while (rs.next()) {
+            String role = rs.getString("role");
+            // Ignore the Administrator user, as there is only one and it is the user logged in (only the administrator can call this method)
+            if (role.equals("Instructor")) {
+                Instructor instructor = new Instructor(UUID.fromString(rs.getString("id")), rs.getString("name"));
+                instructor.setPhoneNumber(rs.getString("phoneNumber"));
+                instructor.setSpecialization(rs.getString("specialization"));
+                users.add(instructor);
+            } else if (role.equals("Client")) {
+                users.add(new Client(UUID.fromString(rs.getString("id")), rs.getString("name"), rs.getInt("age"), rs.getString("guardianName")));
+            }
+        }
+
+        rs.close();
+        stmt.close();
+
+        return users;
+    }
+
+    public static void deleteUser(UUID id) throws SQLException {
+        Connection conn = DatabaseHelper.getConnection();
+        String sql = "DELETE FROM users WHERE id = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, id.toString());
+        pstmt.executeUpdate();
+        pstmt.close();
+    }
+
+    public static boolean adminExists() {
+        try {
+            Connection conn = DatabaseHelper.getConnection();
+            String sql = "SELECT COUNT(*) FROM users WHERE role = 'Administrator'";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            int count = rs.getInt(1);
+            rs.close();
+            stmt.close();
+            return count > 0;
+        } catch (SQLException e) {
+            System.err.println("Failed to check if administrator exists: " + e.getMessage());
+            return false;
+        }
     }
 }

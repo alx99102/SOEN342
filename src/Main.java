@@ -1,5 +1,8 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.UUID;
+
+import system.InstructorAvailabilityDAO;
 import user.*;
 import java.sql.SQLException;
 import system.DatabaseHelper;
@@ -24,15 +27,18 @@ public class Main {
             if (input.equalsIgnoreCase("new")) {
                 System.out.println("Enter the role for your new user: \n" +
                         "'A': Administrator\n" +
-                        "'I': Instructor");
+                        "'I': Instructor\n" +
+                        "'C': Client");
                 String roleInput = scanner.nextLine();
                 char role = roleInput.charAt(0);
 
                 switch (role) {
                     case 'A':
-                        System.out.println("Enter your name:");
-                        String adminName = scanner.nextLine();
-                        user = new Administrator(UUID.randomUUID(), adminName);
+                        if(Administrator.hasInstance() || UserDAO.adminExists()) {
+                            System.out.println("An administrator account already exists.");
+                            break;
+                        }
+                        user = Administrator.getInstance();
                         try {
                             UserDAO.saveUser(user);
                             System.out.println("Administrator account created with ID: " + user.getId());
@@ -45,20 +51,52 @@ public class Main {
                     case 'I':
                         System.out.println("Enter your name:");
                         String instructorName = scanner.nextLine();
-                        Instructor instructor = new Instructor(UUID.randomUUID(), instructorName);
+                        user = new Instructor(UUID.randomUUID(), instructorName);
                         System.out.println("Enter your phone number:");
                         String phoneNumber = scanner.nextLine();
-                        instructor.setPhoneNumber(phoneNumber);
+                        ((Instructor)user).setPhoneNumber(phoneNumber);
                         System.out.println("Enter your specialization:");
                         String specialization = scanner.nextLine();
-                        instructor.setSpecialization(specialization);
+                        ((Instructor)user).setSpecialization(specialization);
+
+                        System.out.println("Enter cities you are available to work in, seperated by a comma. Ex: 'Montreal,Laval'");
+                        String[] availabilities = scanner.nextLine().replaceAll("[^a-zA-Z,-]","").split(",");
+                        ((Instructor)user).setCities(availabilities);
+
                         try {
-                            UserDAO.saveUser(instructor);
-                            System.out.println("Instructor account created with ID: " + instructor.getId());
+                            UserDAO.saveUser(user);
+
+                            for (String city: availabilities) {
+                                InstructorAvailabilityDAO.addAvailability(user.getId(), city);
+                            }
+
+                            System.out.println("Instructor account created with ID: " + user.getId());
                         } catch (SQLException e) {
                             System.err.println("Failed to save user: " + e.getMessage());
                         }
-                        instructor.run();
+                        user.run();
+                        break;
+
+                    case 'C':
+                        System.out.println("Enter your name:");
+                        String clientName = scanner.nextLine();
+
+                        System.out.print("Enter your age: ");
+                        int age = Integer.parseInt(scanner.nextLine());
+                        String guardianName = null;
+                        if (age < 18) {
+                            System.out.print("Enter the name of the parent or guardian making the account: ");
+                            guardianName = scanner.nextLine();
+                        }
+
+                        user = new Client(UUID.randomUUID(), clientName, age, guardianName);
+                        try {
+                            UserDAO.saveUser(user);
+                            System.out.println("Client account created with ID: " + user.getId());
+                        } catch (SQLException e) {
+                            System.err.println("Failed to save user: " + e.getMessage());
+                        }
+                        user.run();
                         break;
 
                     default:

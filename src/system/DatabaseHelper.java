@@ -24,13 +24,16 @@ public class DatabaseHelper {
         String createOfferingsTable = "CREATE TABLE IF NOT EXISTS offerings (" +
                 "id TEXT PRIMARY KEY," +
                 "location TEXT," +
+                "room TEXT," +
                 "lessonType TEXT," +
                 "isPrivate INTEGER," +
                 "startTime TEXT," +
                 "endTime TEXT," +
                 "date TEXT," +
                 "status TEXT," +
-                "availToPublic INTEGER" +
+                // Constraint: “Offerings are unique. In other words, multiple offerings on the same day and
+                // time slot must be offered at a different location"
+                "UNIQUE(location, date, startTime, endTime)" +
                 ");";
         stmt.execute(createOfferingsTable);
 
@@ -40,9 +43,26 @@ public class DatabaseHelper {
                 "name TEXT," +
                 "role TEXT," +
                 "phoneNumber TEXT," +  // For instructors
-                "specialization TEXT" +  // For instructors
+                "specialization TEXT," +  // For instructors
+                "age INTEGER," +  // For clients
+                "guardianName TEXT," +  // For clients
+                "CONSTRAINT age_guardian_check CHECK (age >= 18 OR guardianName IS NOT NULL)" + // Constraint: Any client who is underage must necessarily be accompanied by an adult who acts as their guardian.
                 ");";
         stmt.execute(createUsersTable);
+
+        String createInstructorAvailabilityTable = "CREATE TABLE IF NOT EXISTS availability ("+
+                "id TEXT PRIMARY KEY," +
+                "city TEXT REFERENCES location(city)," +
+                "instructor TEXT REFERENCES users(id));";
+
+        stmt.execute(createInstructorAvailabilityTable);
+
+        String createBookingTable = "CREATE TABLE IF NOT EXISTS booking ("+
+                "id TEXT PRIMARY KEY," +
+                "offering TEXT REFERENCES offerings(id)," +
+                "client TEXT REFERENCES users(id)" +
+                ");";
+        stmt.execute(createBookingTable);
 
         stmt.close();
     }
