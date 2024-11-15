@@ -1,12 +1,14 @@
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
 import system.InstructorAvailabilityDAO;
+import system.OfferingDAO;
 import user.*;
 import java.sql.SQLException;
 import system.DatabaseHelper;
 import system.UserDAO;
+import entities.Offering;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,14 +23,15 @@ public class Main {
         }
 
         while (true) {
-            System.out.println("\nPlease enter your user ID to sign in, or 'new' to create a new user.");
+            System.out.println("\nPlease enter your user ID to sign in, 'new' to create a new user, or 'view' to view public offerings.");
             String input = scanner.nextLine();
 
             if (input.equalsIgnoreCase("new")) {
-                System.out.println("Enter the role for your new user: \n" +
-                        "'A': Administrator\n" +
-                        "'I': Instructor\n" +
-                        "'C': Client");
+                System.out.println("""
+                        Enter the role for your new user:\s
+                        'A': Administrator
+                        'I': Instructor
+                        'C': Client""");
                 String roleInput = scanner.nextLine();
                 char role = roleInput.charAt(0);
 
@@ -103,7 +106,19 @@ public class Main {
                         System.out.println("Invalid role code. Please try again.");
                         break;
                 }
-            } else {
+            }
+            else if (input.equalsIgnoreCase("view")) {
+                try {
+                    List<Offering> offerings = OfferingDAO.getAllOfferings();
+                    System.out.println("\nPublic Offerings:");
+                    for (Offering offering : offerings) {
+                        System.out.println(offering);
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Failed to retrieve offerings: " + e.getMessage());
+                }
+            }
+            else {
                 try {
                     UUID userId = UUID.fromString(input);
                     user = UserDAO.getUserById(userId);

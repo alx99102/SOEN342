@@ -1,7 +1,6 @@
 package user;
 
 import entities.Offering;
-import org.jetbrains.annotations.Nullable;
 import system.BookingDAO;
 
 import java.sql.SQLException;
@@ -15,7 +14,6 @@ public class Client extends User {
 
     private int age;
 
-    @Nullable
     private String guardianName;
 
 
