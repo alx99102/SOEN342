@@ -52,7 +52,7 @@ public class DatabaseHelper {
 
         String createInstructorAvailabilityTable = "CREATE TABLE IF NOT EXISTS availability ("+
                 "id TEXT PRIMARY KEY," +
-                "city TEXT REFERENCES location(city)," +
+                "city TEXT REFERENCES offerings(location)," +
                 "instructor TEXT REFERENCES users(id));";
 
         stmt.execute(createInstructorAvailabilityTable);
