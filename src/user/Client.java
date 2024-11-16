@@ -3,6 +3,7 @@ package user;
 import entities.Offering;
 import system.BookingDAO;
 
+import java.awt.print.Book;
 import java.sql.SQLException;
 import java.util.UUID;
 import java.util.Scanner;
@@ -15,6 +16,14 @@ public class Client extends User {
     private int age;
 
     private String guardianName;
+
+    public int getAge() {
+        return age;
+    }
+
+    public String getGuardianName() {
+        return guardianName;
+    }
 
 
     public String getRole() {
@@ -89,6 +98,17 @@ public class Client extends User {
             offering.setStatus("Unavailable");
             OfferingDAO.updateOffering(offering);
             Booking booking = new Booking(UUID.randomUUID(), offering, this);
+            List<Booking> bookings = BookingDAO.getBookingsForClient(this.id);
+            for (Booking b : bookings) {
+                if (b.getOffering().getStartTime().equals(booking.getOffering().getStartTime()) &&
+                        b.getOffering().getEndTime().equals(booking.getOffering().getEndTime()) &&
+                        b.getOffering().getDate().equals(booking.getOffering().getDate())) {
+                    System.out.println("You already have a booking at this time.");
+                    offering.setStatus("Taken");
+                    OfferingDAO.updateOffering(offering);
+                    return;
+                }
+            }
             BookingDAO.saveBooking(booking);
             System.out.println("Offering booked successfully.");
         } catch (Exception e) {

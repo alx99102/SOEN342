@@ -10,7 +10,7 @@ public class UserDAO {
 
     public static void saveUser(User user) throws SQLException {
         Connection conn = DatabaseHelper.getConnection();
-        String sql = "INSERT INTO users (id, name, role, phoneNumber, specialization) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (id, name, role, phoneNumber, specialization, age, guardianName) VALUES (?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement pstmt = conn.prepareStatement(sql);
         pstmt.setString(1, user.getId().toString());
         pstmt.setString(2, user.getName());
@@ -23,6 +23,15 @@ public class UserDAO {
         } else {
             pstmt.setString(4, null);
             pstmt.setString(5, null);
+        }
+
+        if (user instanceof Client) {
+            Client client = (Client) user;
+            pstmt.setInt(6, client.getAge());
+            pstmt.setString(7, client.getGuardianName());
+        } else {
+            pstmt.setInt(6, 99999);
+            pstmt.setString(7, null);
         }
 
         pstmt.executeUpdate();

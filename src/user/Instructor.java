@@ -120,7 +120,15 @@ public class Instructor extends User {
         this.cities = cities;
     }
 
-    public String[] getCities() {
-        return cities;
+
+
+    @Override
+    public String toString() {
+        return "Instructor{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", specialization='" + specialization + '\'' +
+                '}';
     }
 }
