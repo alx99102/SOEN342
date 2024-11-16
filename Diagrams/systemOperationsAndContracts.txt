@@ -1,0 +1,400 @@
+----------List of System Operations-------------
+
+1. 'createNewOffering'
+2. 'bookOffering'
+3. 'cancelBooking'
+4. 'selectOffering'
+5. 'addAvailability'
+6. 'deleteOffering'
+7. 'deleteUser'
+8. 'createNewUser'
+9. 'viewAvailableOfferings' (Client)
+10. 'viewBookings'
+11. 'viewAllOfferings'
+12. 'viewUsers'
+13. 'viewAvailableOfferings' (Instructor)
+14. 'initializeDatabase'
+15. 'saveOffering'
+16. 'updateOffering'
+17. 'saveBooking'
+18. 'deleteBooking'
+19. 'saveUser'
+
+
+
+-----------Operation Contracts----------
+
+### Operation 1: createNewOffering
+
+Operation Name: createNewOffering
+
+Parameters:
+- location: String
+- room: String
+- lessonType: String
+- isPrivate: boolean
+- startTime: String
+- endTime: String
+- date: String
+
+Cross References: Use Case - Administrator creates a new offering.
+
+Preconditions:
+- The administrator is logged in.
+
+Postconditions:
+- An Offering instance 'offering' is created.
+- 'offering.location' is set to 'location'.
+- 'offering.room' is set to 'room'.
+- 'offering.lessonType' is set to 'lessonType'.
+- 'offering.isPrivate' is set to 'isPrivate'.
+- 'offering.startTime' is set to 'startTime'.
+- 'offering.endTime' is set to 'endTime'.
+- 'offering.date' is set to 'date'.
+- 'offering.status' is set to 'Available'.
+- The 'offering' is saved in the database.
+
+---
+
+### Operation 2: bookOffering
+
+Operation Name: bookOffering
+
+Parameters:
+- offeringId: UUID
+
+Cross References: Use Case - Client books an offering.
+
+Preconditions:
+- The offering with 'id = offeringId' exists.
+- The offering's 'status' is 'Available'.
+- The client is logged in.
+- Constraint: The client does not have any existing bookings with the same 'date', 'startTime', and 'endTime'.
+
+Postconditions:
+- The offering's 'status' is set to 'Unavailable'.
+- A Booking instance 'booking' is created.
+- 'booking.offering' is associated with the offering.
+- 'booking.client' is associated with the client.
+- The 'booking' is saved in the database.
+
+---
+
+### Operation 3: cancelBooking
+
+Operation Name: cancelBooking
+
+Parameters:
+- bookingId: UUID
+
+Cross References: Use Case - Client cancels a booking.
+
+Preconditions:
+- The booking with 'id = bookingId' exists.
+- The booking is associated with the client.
+- The client is logged in.
+
+Postconditions:
+- The 'booking' is deleted from the system.
+- The associated offering's 'status' is set to 'Available'.
+
+---
+
+### Operation 4: selectOffering
+
+Operation Name: selectOffering
+
+Parameters:
+- offeringId: UUID
+
+Cross References: Use Case - Instructor selects an offering.
+
+Preconditions:
+- The offering with 'id = offeringId' exists.
+- The offering's 'status' is 'Available'.
+- The instructor is logged in.
+- Constraint: The offering's 'location' is included in the instructor's 'cities' of availability.
+
+Postconditions:
+- The offering's 'status' is set to 'Taken'.
+- The offering is associated with the instructor.
+
+---
+
+### Operation 5: addAvailability
+
+Operation Name: addAvailability
+
+Parameters:
+- instructorId: UUID
+- city: String
+
+Cross References: Use Case - Instructor adds availability.
+
+Preconditions:
+- The instructor with 'id = instructorId' exists.
+- The instructor is logged in.
+
+Postconditions:
+- An Availability instance 'availability' is created.
+- 'availability.instructorId' is set to 'instructorId'.
+- 'availability.city' is set to 'city'.
+- The 'availability' is saved in the database.
+
+---
+
+### Operation 6: deleteOffering
+
+Operation Name: deleteOffering
+
+Parameters:
+- offeringId: UUID
+
+Cross References: Use Case - Administrator deletes an offering.
+
+Preconditions:
+- The offering with 'id = offeringId' exists.
+- The administrator is logged in.
+
+Postconditions:
+- The 'offering' is deleted from the system.
+
+---
+
+### Operation 7: deleteUser
+
+Operation Name: deleteUser
+
+Parameters:
+- userId: UUID
+
+Cross References: Use Case - Administrator deletes a user.
+
+Preconditions:
+- The user with 'id = userId' exists.
+- The administrator is logged in.
+
+Postconditions:
+- The 'user' is deleted from the system.
+
+---
+
+### Operation 8: createNewUser
+
+Operation Name: createNewUser
+
+Parameters:
+- role: String (must be one of 'Administrator', 'Instructor', or 'Client')
+- name: String
+- Additional parameters depending on the role:
+  - For Instructors:
+    - phoneNumber: String
+    - specialization: String
+    - cities: List<String>
+  - For Clients:
+    - age: int
+    - guardianName: String (if underage)
+
+Cross References: Use Case - Create a new user (Administrator, Instructor, or Client).
+
+Preconditions:
+- The role is valid ('Administrator', 'Instructor', or 'Client').
+- If role is 'Administrator', no other administrator exists.
+
+Postconditions:
+- A User instance 'user' is created.
+- 'user.role' is set to 'role'.
+- 'user.name' is set to 'name'.
+- Additional attributes are set based on 'role':
+  - If 'role' is 'Instructor':
+    - 'user.phoneNumber' is set.
+    - 'user.specialization' is set.
+    - Instructor availabilities are added for each city in 'cities'.
+  - If 'role' is 'Client':
+    - 'user.age' is set.
+    - If 'user.age < 18', 'user.guardianName' is set.
+- The 'user' is saved in the database.
+
+---
+
+### Operation 9: viewAvailableOfferings (Client)
+
+Operation Name: viewAvailableOfferings
+
+Parameters: None
+
+Cross References: Use Case - Client views available offerings.
+
+Preconditions:
+- The client is logged in.
+
+Postconditions:
+- The system displays all offerings where 'status' is 'Available'.
+
+---
+
+### Operation 10: viewBookings
+
+Operation Name: viewBookings
+
+Parameters: None
+
+Cross References: Use Case - Client views their bookings.
+
+Preconditions:
+- The client is logged in.
+
+Postconditions:
+- The system displays all bookings associated with the client.
+
+---
+
+### Operation 11: viewAllOfferings
+
+Operation Name: viewAllOfferings
+
+Parameters: None
+
+Cross References: Use Case - Administrator views all offerings.
+
+Preconditions:
+- The administrator is logged in.
+
+Postconditions:
+- The system displays all offerings.
+
+---
+
+### Operation 12: viewUsers
+
+Operation Name: viewUsers
+
+Parameters: None
+
+Cross References: Use Case - Administrator views all users.
+
+Preconditions:
+- The administrator is logged in.
+
+Postconditions:
+- The system displays all users, excluding the administrator themselves.
+
+---
+
+### Operation 13: viewAvailableOfferings (Instructor)
+
+Operation Name: viewAvailableOfferings
+
+Parameters: None
+
+Cross References: Use Case - Instructor views available offerings.
+
+Preconditions:
+- The instructor is logged in.
+
+Postconditions:
+- The system displays all offerings where:
+  - 'status' is 'Available'.
+  - 'location' is included in the instructor's 'cities' of availability.
+
+---
+
+### Operation 14: initializeDatabase
+
+Operation Name: initializeDatabase
+
+Parameters: None
+
+Cross References: System Initialization.
+
+Preconditions:
+- The system is starting up.
+
+Postconditions:
+- The database schema is created if it does not already exist.
+- Tables for 'offerings', 'users', 'availability', and 'booking' are created with appropriate constraints.
+
+---
+
+### Operation 15: saveOffering
+
+Operation Name: saveOffering
+
+Parameters:
+- offering: Offering
+
+Cross References: Data Access Operation.
+
+Preconditions:
+- The 'offering' object is properly instantiated.
+
+Postconditions:
+- The 'offering' is saved to the database.
+
+---
+
+### Operation 16: updateOffering
+
+Operation Name: updateOffering
+
+Parameters:
+- offering: Offering
+
+Cross References: Data Access Operation.
+
+Preconditions:
+- The 'offering' exists in the database.
+
+Postconditions:
+- The 'offering' data in the database is updated with the new values from the 'offering' object.
+
+---
+
+### Operation 17: saveBooking
+
+Operation Name: saveBooking
+
+Parameters:
+- booking: Booking
+
+Cross References: Data Access Operation.
+
+Preconditions:
+- The 'booking' object is properly instantiated.
+
+Postconditions:
+- The 'booking' is saved to the database.
+
+---
+
+### Operation 18: deleteBooking
+
+Operation Name: deleteBooking
+
+Parameters:
+- bookingId: UUID
+
+Cross References: Use Case - Administrator or Client cancels a booking.
+
+Preconditions:
+- The 'booking' with 'id = bookingId' exists.
+
+Postconditions:
+- The 'booking' is deleted from the database.
+
+---
+
+### Operation 19: saveUser
+
+Operation Name: saveUser
+
+Parameters:
+- user: User
+
+Cross References: Data Access Operation.
+
+Preconditions:
+- The 'user' object is properly instantiated.
+
+Postconditions:
+- The 'user' is saved to the database.
